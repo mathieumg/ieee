@@ -51,6 +51,7 @@ void generateAlignments(int size, const string& sequence, vector<string>& outAli
     {
         string newSeq = sequence;
         newSeq = newSeq.insert(i, 1, '-');
+        
         int newSeqL = newSeq.length();
         if (newSeqL == 0)
         {
@@ -97,13 +98,20 @@ bool keepAlignment(const vector<const string*>& alignments)
 
     
     bool goodValues = false;
+    vector<int> countGaps;
+    countGaps.reserve(l);
     for (int i=0; i<l; i++)
     {
         char charAlignment = '-';
         bool goodColumn = true;
+        int cGaps = 0;
         for (int j=0; j<nbAlignments; j++)
         {
             char charAt = alignments[j]->at(i);
+            if (charAt == '-')
+            {
+                cGaps++;
+            }
             if (charAlignment == '-')
             {
                 charAlignment = alignments[j]->at(i);
@@ -115,6 +123,8 @@ bool keepAlignment(const vector<const string*>& alignments)
             }
         }
 
+        countGaps.push_back(cGaps);
+
         // If the value is still '-', there was an entire column with '-'. We must then ignore it
         if (charAlignment == '-')
         {
@@ -124,9 +134,15 @@ bool keepAlignment(const vector<const string*>& alignments)
         goodValues |= goodColumn;
     }
 
-    
+    for (int i=0; i<l; i++)
+    {
+        if (countGaps[i] != 0)
+        {
+            return goodValues;
+        }
+    }
 
-    return goodValues;
+    return true;
 }
 
 
@@ -206,7 +222,7 @@ void addValues(const vector<const string*>& arr, vector<vector<const string*>>& 
 
 void printPossibilityCount(int count)
 {
-    cout << "PossibleAlignments: " << count << endl;
+    cout << "Possible Alignments: " << count << endl;
 }
 
 void printNoAlignment(int pos)
@@ -216,12 +232,10 @@ void printNoAlignment(int pos)
 
 void printAlignmentPosition(int pos, const vector<const string*>& alignment )
 {
-    
     cout << "Alignment at Position: " << pos << endl;
     for (auto it=alignment.begin(); it!=alignment.end(); it++)
     {
-        string test = *(*it);
-        cout << test << endl;
+        cout << *(*it) << endl;
     }
 }
 
@@ -242,8 +256,7 @@ int main() {
     // We need to manages the case of n==0 (no sequences and output the no alignment string)
     if (n < 0 || n > 5)
     {
-        printError();
-        assert(false);
+        n = 0;
     }
 
 
@@ -255,7 +268,9 @@ int main() {
     {
         string sequenceStr;
         getline(cin, sequenceStr);
-        remove(sequenceStr.begin(), sequenceStr.end(), ' ');
+        sequenceStr.erase(remove(sequenceStr.begin(), sequenceStr.end(), ' '), sequenceStr.end());
+        sequenceStr.erase(remove(sequenceStr.begin(), sequenceStr.end(), '\n'), sequenceStr.end());
+        sequenceStr.erase(remove(sequenceStr.begin(), sequenceStr.end(), '\r'), sequenceStr.end());
         transform(sequenceStr.begin(), sequenceStr.end(),sequenceStr.begin(), ::toupper);
         if (!validSequence(sequenceStr))
         {
@@ -284,10 +299,9 @@ int main() {
         k = -1;
     }
 
-    if (k == -1)
+    if (k < 0)
     {
-        printError();
-        assert(false);
+        k = 0;
     }
 
     vector<int> posAlignmentsOutput;
@@ -295,7 +309,6 @@ int main() {
 
     for(int i=0; i<k; i++)
     {
-
         string indexStr1Based;
         getline(cin, indexStr1Based);
         int index1Based = -1;
