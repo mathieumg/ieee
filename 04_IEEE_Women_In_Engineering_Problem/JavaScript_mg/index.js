@@ -44,11 +44,11 @@ function trainSectionDuration(sectionLength) {
 
     // Cruise speed.
     time += sectionLength / TRAIN_MAX_SPEED;
-  } else {
-    meetingTime = Math.sqrt((2 * sectionLength)/(TRAIN_ACCELERATION + TRAIN_DECELERATION));
-    time += meetingTime;
-    meetingSpeed = TRAIN_ACCELERATION * meetingTime;
-    time += meetingSpeed / -TRAIN_DECELERATION;
+  } else {  
+    meetingDistance = sectionLength/((TRAIN_ACCELERATION/-TRAIN_DECELERATION) + 1);
+    meetingSpeed = Math.sqrt(2 * TRAIN_ACCELERATION * meetingDistance);
+    time += meetingSpeed/TRAIN_ACCELERATION;
+    time += -meetingSpeed/TRAIN_DECELERATION;
   }
 
   return time;
@@ -114,7 +114,7 @@ function processData(input) {
     }
 
     /*
-    for (var i = 500; i <= 100000; i+=500 ) {
+    for (var i = 500; i <= 3000; i+=25 ) {
       console.log('%d seconds for %d meters', Math.round(trainSectionDuration(i) + 1), i);
     }
     */
@@ -128,19 +128,18 @@ function processData(input) {
             trackSection.currentTrain = trainCount - trainsLeft;
             trainsLeft--;
           }
-        } else if(index < (trackSections.length - 1)) {
+        } else if(index < (trackSections.length)) {
           // Station.
           var previousSection = trackSections[index - 1];
           var previousDepartures = trains[previousSection.currentTrain].departures;
-          //var previousArrivals = trains[previousSection.currentTrain].arrivals;
 
-          var duration = Math.round(trainSectionDuration(previousSection.trackLength) + STATION_WAIT_TIME);
+          var duration = Math.round(trainSectionDuration(previousSection.trackLength));
 
           var newArrival = previousDepartures[previousDepartures.length - 1] + duration;
 
           trains[previousSection.currentTrain].arrivals.push(newArrival);
 
-          trains[previousSection.currentTrain].departures.push(newArrival + TRAIN_STOP_DURATION );
+          trains[previousSection.currentTrain].departures.push(newArrival + TRAIN_STOP_DURATION + STATION_WAIT_TIME );
           trackSection.currentTrain = previousSection.currentTrain;
           previousSection.currentTrain = null;
         } 
@@ -153,18 +152,22 @@ function processData(input) {
             console.log('Call myself');
           }
           else {
-            var previousDepartures = trains[trackSection.currentTrain].departures;
-            var duration = Math.round(trainSectionDuration(trackSection.trackLength) + STATION_WAIT_TIME);
+            var sectionToInspect = trackSections.length === 1 ? trackSections[0] : trackSections[index - 1];
+            var previousDepartures = trains[sectionToInspect.currentTrain].departures;
+            var duration = Math.round(trainSectionDuration(sectionToInspect.trackLength));
+            var newArrival = previousDepartures[previousDepartures.length - 1] + duration ;
 
-            var newArrival = previousDepartures[previousDepartures.length - 1] + duration;
-
-            trains[trackSection.currentTrain].arrivals.push(newArrival);
+            trains[sectionToInspect.currentTrain].arrivals.push(newArrival);
+            trackSection.currentTrain = sectionToInspect.currentTrain;
+            sectionToInspect.currentTrain = null;
           }
         }
+      } else {
+        console.log('We have a train!');
       }
     });
 
-    //console.log(util.inspect(trains));
+    console.log(util.inspect(trains));
 
     //console.log('We have %d trains and %d sections that total %d kms', trainCount, trackSections.length, totalTrackLength / 1000);
 
