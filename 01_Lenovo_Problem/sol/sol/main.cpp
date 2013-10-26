@@ -13,9 +13,26 @@ using namespace std;
 void printError()
 {
     cout << "ERROR" << endl;
+    assert(false);
+    exit(-1);
 }
 
+bool validResidue(const char& c)
+{
+    return (c == 'A') || (c == 'C') || (c == 'G') || (c == 'T');
+}
 
+bool validSequence(const string& str)
+{
+    for (int i=0; i<str.length(); i++)
+    {
+        if (!validResidue(str[i]))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 int main() {
 
@@ -43,6 +60,11 @@ int main() {
     {
         string sequenceStr;
         getline(cin, sequenceStr);
+        transform(sequenceStr.begin(), sequenceStr.end(),sequenceStr.begin(), ::toupper);
+        if (!validSequence(sequenceStr))
+        {
+            printError();
+        }
         sequences.push_back(sequenceStr);
     }
 
@@ -66,7 +88,7 @@ int main() {
     for(int i=0; i<k; i++)
     {
         // We already do the conversion from 1 based to 0 based.
-        // So at output, use the index directly (no index-1)
+        // So at output, use the index directly (no index-1) !!!!
 
         string indexStr1Based;
         getline(cin, indexStr1Based);
@@ -78,9 +100,19 @@ int main() {
             index1Based = -1;
         }
 
-        assert(index1Based-1 >=0);
+        assert(index1Based-1 >= 0);
         posAlignmentsOutput.push_back(index1Based - 1);
     }
+
+
+
+
+
+
+
+
+
+
 
 
 
