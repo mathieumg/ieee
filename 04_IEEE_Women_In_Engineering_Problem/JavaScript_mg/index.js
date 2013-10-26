@@ -119,68 +119,89 @@ function processData(input) {
     }
     */
 
-    trackSections.forEach( function (trackSection, index) {
-      if (!trackSection.currentTrain) {
-        if (index == 0) {
-          // Depot.
-          if( trainsLeft > 0 ) {
-            trains[trainCount - trainsLeft].departures.push(1);
-            trackSection.currentTrain = trainCount - trainsLeft;
-            trainsLeft--;
+    (function moveTrains() {
+      trackSections.forEach( function (trackSection, index) {
+        if (!trackSection.currentTrain) {
+          if (index === 0) {
+            // Depot.
+            if( trainsLeft > 0 ) {
+              trackSection.currentTrain = trainCount - trainsLeft;
+              trainsLeft--;
+              var newDeparture = 1;
+
+              if (trackSection.currentTrain !== 0) {
+                var previousTrain = trains[trackSection.currentTrain - 1];
+                newDeparture += previousTrain.departures[1];
+              }
+              
+              trains[trackSection.currentTrain].departures.push(newDeparture);
+              trackSection.lastExit = newDeparture;
+
+              var duration = Math.round(trainSectionDuration(trackSection.trackLength));
+              var newArrival = newDeparture + duration;
+              trains[trackSection.currentTrain].arrivals.push(newArrival);
+            }
+            else {
+              console.log('No more new trains!');
+            }
+          } else if(index < (trackSections.length)) {
+            // Station.
+            var previousSection = trackSections[index - 1];
+            trackSection.currentTrain = previousSection.currentTrain;
+
+            var previousArrivals = trains[previousSection.currentTrain].arrivals;
+            var duration = Math.round(trainSectionDuration(trackSection.trackLength));
+
+            var newDeparture;
+            if (trackSection.currentTrain === 0) {
+              newDeparture = previousArrivals[previousArrivals.length - 1] + TRAIN_STOP_DURATION + STATION_WAIT_TIME;
+            } else {
+              var previousTrain = trains[trackSection.currentTrain - 1];
+              if (index === (trackSections.length - 1)) {
+                newDeparture = 1 + previousTrain.arrivals[index];
+              } else {
+                newDeparture = 1 + previousTrain.departures[index + 1];
+              }
+            }
+
+            trains[trackSection.currentTrain].departures.push(newDeparture);
+            trackSection.lastExit = newDeparture;
+            trains[trackSection.currentTrain].arrivals.push(newDeparture + duration);
+            previousSection.currentTrain = null;
+          } 
+          
+          // Could have only Depot and Terminal...
+          if (index === (trackSections.length - 1)) {
+            // Terminal.
+            trackSection.currentTrain = null;
+            if( trainsLeft !== 0 ) {
+              //TODO.
+              moveTrains();
+            }
           }
-        } else if(index < (trackSections.length)) {
-          // Station.
-          var previousSection = trackSections[index - 1];
-          var previousDepartures = trains[previousSection.currentTrain].departures;
-
-          var duration = Math.round(trainSectionDuration(previousSection.trackLength));
-
-          var newArrival = previousDepartures[previousDepartures.length - 1] + duration;
-
-          trains[previousSection.currentTrain].arrivals.push(newArrival);
-
-          trains[previousSection.currentTrain].departures.push(newArrival + TRAIN_STOP_DURATION + STATION_WAIT_TIME );
-          trackSection.currentTrain = previousSection.currentTrain;
-          previousSection.currentTrain = null;
-        } 
-
-        // Could have only Depot and Terminal...
-        if (index === (trackSections.length - 1)) {
-          // Terminal.
-          if( trainsLeft !== 0 ) {
-            //TODO.
-            console.log('Call myself');
-          }
-          else {
-            var sectionToInspect = trackSections.length === 1 ? trackSections[0] : trackSections[index - 1];
-            var previousDepartures = trains[sectionToInspect.currentTrain].departures;
-            var duration = Math.round(trainSectionDuration(sectionToInspect.trackLength));
-            var newArrival = previousDepartures[previousDepartures.length - 1] + duration ;
-
-            trains[sectionToInspect.currentTrain].arrivals.push(newArrival);
-            trackSection.currentTrain = sectionToInspect.currentTrain;
-            sectionToInspect.currentTrain = null;
-          }
+          
+        } else {
+          console.log('We have a train!');
         }
-      } else {
-        console.log('We have a train!');
-      }
-    });
+      });
+    })();
 
-    console.log(util.inspect(trains));
+    //console.log(util.inspect(trains));
 
     //console.log('We have %d trains and %d sections that total %d kms', trainCount, trackSections.length, totalTrackLength / 1000);
 
     trains.forEach( function (train, index) {
       var output = '' + (index + 1) + ' :';
-
-      for(var j = 0; j < train.departures.length; j++) {
-        if (j == 0) {
-          output += ' ***** - ' + ('     ' + train.departures[j]).slice(-5) + ' ';
+      
+      for(var j = 0; j < trackSections.length; j++) {
+        if (j === 0) {
+          output += ' ***** - ' + ('     ' + train.departures.shift()).slice(-5) + ' ';
+        } else {
+          output += ' ' + ('     ' + train.arrivals.shift()).slice(-5) + ' - ' + ('     ' + train.departures.shift()).slice(-5) + ' ';
         }
 
-        if (j === (train.departures.length - 1)) {
-          output += ' ' + ('     ' + train.arrivals[j]).slice(-5) + ' *****';
+        if (j === (trackSections.length - 1)) {
+          output += ' ' + ('     ' + train.arrivals.shift()).slice(-5) + ' *****';
         }
       }
 
