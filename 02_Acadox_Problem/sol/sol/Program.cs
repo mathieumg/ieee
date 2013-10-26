@@ -90,17 +90,15 @@ class Solution
     static void PrintError()
     {
         System.Console.Out.WriteLine("ERROR");
-        System.Console.In.Read();
         Environment.Exit(0);
     }
 
-    static void PrintSolution(string val)
+    static void PrintSolution(int val)
     {
-        string outVal = val;
+        string outVal = val.ToString("X");
         outVal = outVal.ToUpper();
         outVal = outVal.PadLeft(4, '0');
         System.Console.Out.WriteLine(outVal);
-        System.Console.In.Read();
     }
 
     static Operator GetOperator(string str)
@@ -152,7 +150,8 @@ class Solution
                             {
                                 Solution.PrintError();
                             }
-                            stack.Push(str);
+                            int val = (int)Convert.ToUInt32(str, 16);
+                            stack.Push(val);
                         }
                         else
                         {
@@ -173,8 +172,7 @@ class Solution
                                 {
                                     try
                                     {
-                                        string popedVal=stack.Pop().ToString();
-                                        vals[1-i]= (int) Convert.ToUInt32(popedVal, 16);
+                                        vals[1-i]=(int) stack.Pop();
                                     }
                                     catch (Exception)
                                     {
@@ -184,8 +182,7 @@ class Solution
                                 }
 
                                 int retVal=op.DoWork(vals[0], vals[1]);
-                                string retValStr=retVal.ToString("X");
-                                stack.Push(retValStr);
+                                stack.Push(retVal);
                             }
                         }
                     }
@@ -196,15 +193,7 @@ class Solution
                     }
                     else
                     {
-                        string lastVal=stack.Pop().ToString();
-                        try
-                        {
-                            Convert.ToUInt32(lastVal, 16);
-                        }
-                        catch (Exception)
-                        {
-                            Solution.PrintError();
-                        }
+                        int lastVal=(int)stack.Pop();
                         Solution.PrintSolution(lastVal);
                     }
                 }
