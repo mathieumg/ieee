@@ -87,7 +87,14 @@ function processData(input) {
     }
 
     while (problemData.length !== 0) {
-      var newTrackSegment = parseInt(problemData.shift(), 10);
+      var newTrackSegment = problemData.shift();
+
+      if ((Number(newTrackSegment) % 1) !== 0) {
+        console.log('ERROR');
+        return;
+      }
+
+      newTrackSegment = parseInt(newTrackSegment, 10);
 
       if (newTrackSegment < 500) {
         console.log('ERROR');
@@ -162,10 +169,11 @@ function processData(input) {
               } else {
                 newDeparture = 1 + previousTrain.departures[index + 1];
               }
+
+              newDeparture = Math.max(newDeparture, previousArrivals[previousArrivals.length - 1] + TRAIN_STOP_DURATION + STATION_WAIT_TIME);
             }
 
             trains[trackSection.currentTrain].departures.push(newDeparture);
-            trackSection.lastExit = newDeparture;
             trains[trackSection.currentTrain].arrivals.push(newDeparture + duration);
             previousSection.currentTrain = null;
           } 
