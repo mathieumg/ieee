@@ -179,7 +179,7 @@ struct compareFunction
         {
             const char* s1 = a[i]->c_str();
             const char* s2 = b[i]->c_str();
-            int len = strlen(s1);
+            int len = a[i]->length();
 
             for (int iChar=0; iChar < len; iChar++)
             {
@@ -216,17 +216,17 @@ void printNoAlignment(int pos)
 
 void printAlignmentPosition(int pos, const vector<const string*>& alignment )
 {
+    
     cout << "Alignment at Position: " << pos << endl;
     for (auto it=alignment.begin(); it!=alignment.end(); it++)
     {
-        cout << *(*it) << endl;
+        string test = *(*it);
+        cout << test << endl;
     }
 }
 
 
 int main() {
-
-
 
     int n = -1;
 
@@ -259,7 +259,7 @@ int main() {
         transform(sequenceStr.begin(), sequenceStr.end(),sequenceStr.begin(), ::toupper);
         if (!validSequence(sequenceStr))
         {
-            printError();
+            //printError();
         }
         sequences.push_back(sequenceStr);
         int seqLength = sequenceStr.length();
@@ -274,7 +274,6 @@ int main() {
         }
         sequencesLength.push_back(seqLength);
     }
-
 
     int k = -1;
     string kStr;
@@ -328,9 +327,9 @@ int main() {
         }
 
         vector<vector<const string*>> filteredAlignments;
-        int t = 0;
         vector<const string*> testVector;
-        for (unordered_set<string>::iterator it0 = allPossibleAlignments[0].begin(); it0!=allPossibleAlignments[0].end(); it0++)
+
+        for (auto it0 = allPossibleAlignments[0].begin(); it0!=allPossibleAlignments[0].end(); it0++)
         {
             testVector.push_back(&(*it0));
             for (auto it1 = allPossibleAlignments[1].begin(); it1!=allPossibleAlignments[1].end(); it1++)
@@ -382,7 +381,6 @@ int main() {
 
         sort(filteredAlignments.begin(), filteredAlignments.end(), compareFunction());
         
-
         printPossibilityCount(filteredAlignments.size());
         for (int p=0; p<k; p++)
         {
@@ -408,7 +406,8 @@ int main() {
         }
     }
 
-
+#ifdef WIN32
     system("pause");
+#endif
     return 0;
 }
