@@ -19,17 +19,16 @@ function processData(input) {
           carry = 0;
         }
 
-        a /= 2;
-        a = Math.floor(a);
+        a >>= 1;
 
-        c *= 2;
+        c <<= 1;
         c += carry;
     };
 
     a = c;
     c = 0;
 
-    d = 513;
+    d = 513; //0212h
 
     while (Math.floor(d / 256) <= b) {
       if(d >= Math.pow(2, 31)) {
